@@ -53,6 +53,29 @@ mvn spring-boot:run -pl bootstrap -Dspring-boot.run.profiles=dev
 mvn clean install -pl domain/domain-model -am
 ```
 
+## java -jar 启动
+
+日志目录：`/tmp/awsome-shop/order/`
+
+```bash
+# 1. 构建可执行 jar
+mvn clean package -DskipTests
+
+# 2. 创建日志目录
+mkdir -p /tmp/awsome-shop/order
+
+# 3. 后台启动服务（local 配置，日志输出到 /tmp/awsome-shop/order/app.log）
+nohup java -jar bootstrap/target/awsome-shop-order-service-1.0.0-SNAPSHOT.jar \
+  --spring.profiles.active=local \
+  > /tmp/awsome-shop/order/app.log 2>&1 &
+
+# 4. 查看启动日志
+tail -f /tmp/awsome-shop/order/app.log
+
+# 5. 停止服务
+kill $(lsof -t -i:8004)
+```
+
 ## 环境配置
 - `local`（默认）— 本地开发
 - `dev` — 开发环境
