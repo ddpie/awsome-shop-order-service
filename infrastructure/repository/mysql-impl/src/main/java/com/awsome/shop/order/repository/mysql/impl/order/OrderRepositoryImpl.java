@@ -49,14 +49,14 @@ public class OrderRepositoryImpl implements OrderRepository {
 
     @Override
     public PageResult<OrderEntity> pageByUserId(Long userId, int page, int size) {
-        IPage<OrderPO> result = orderMapper.selectPageByUserId(new Page<>(page, size), userId);
+        IPage<OrderPO> result = orderMapper.selectPageByUserId(new Page<>(page + 1, size), userId);
         return toPageResult(result);
     }
 
     @Override
     public PageResult<OrderEntity> pageAll(int page, int size, String keyword,
                                             LocalDateTime startDate, LocalDateTime endDate) {
-        IPage<OrderPO> result = orderMapper.selectPageAll(new Page<>(page, size), keyword, startDate, endDate);
+        IPage<OrderPO> result = orderMapper.selectPageAll(new Page<>(page + 1, size), keyword, startDate, endDate);
         return toPageResult(result);
     }
 
@@ -64,11 +64,11 @@ public class OrderRepositoryImpl implements OrderRepository {
 
     private PageResult<OrderEntity> toPageResult(IPage<OrderPO> iPage) {
         PageResult<OrderEntity> pageResult = new PageResult<>();
-        pageResult.setCurrent(iPage.getCurrent());
+        pageResult.setCurrentPage(iPage.getCurrent() - 1);
         pageResult.setSize(iPage.getSize());
-        pageResult.setTotal(iPage.getTotal());
-        pageResult.setPages(iPage.getPages());
-        pageResult.setRecords(iPage.getRecords().stream().map(this::toEntity).collect(Collectors.toList()));
+        pageResult.setTotalElements(iPage.getTotal());
+        pageResult.setTotalPages(iPage.getPages());
+        pageResult.setContent(iPage.getRecords().stream().map(this::toEntity).collect(Collectors.toList()));
         return pageResult;
     }
 

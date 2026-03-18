@@ -60,8 +60,8 @@ public class ProductServiceClientImpl implements ProductServiceClient {
         return new ProductInfo(
                 toLong(data.get("id")),
                 (String) data.get("name"),
-                (String) data.get("imageUrl"),
-                toInt(data.get("pointsPrice")),
+                (String) data.get("mainImage"),
+                toIntRounded(data.get("pointsPrice")),
                 toInt(data.get("stock")),
                 statusStr
         );
@@ -135,5 +135,11 @@ public class ProductServiceClientImpl implements ProductServiceClient {
         if (value == null) return null;
         if (value instanceof Number) return ((Number) value).intValue();
         return Integer.parseInt(value.toString());
+    }
+
+    private Integer toIntRounded(Object value) {
+        if (value == null) return null;
+        if (value instanceof Number) return (int) Math.round(((Number) value).doubleValue());
+        return (int) Math.round(Double.parseDouble(value.toString()));
     }
 }
