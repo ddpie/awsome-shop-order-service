@@ -47,13 +47,23 @@ public class ProductServiceClientImpl implements ProductServiceClient {
         Map<String, Object> data = (Map<String, Object>) responseBody.get("data");
         if (data == null) return null;
 
+        // Product service returns status as Integer (0=ACTIVE, 1=OFF_SHELF)
+        // Convert to String for order service compatibility
+        Object statusObj = data.get("status");
+        String statusStr;
+        if (statusObj instanceof Number) {
+            statusStr = ((Number) statusObj).intValue() == 0 ? "ACTIVE" : "OFF_SHELF";
+        } else {
+            statusStr = statusObj != null ? statusObj.toString() : null;
+        }
+
         return new ProductInfo(
                 toLong(data.get("id")),
                 (String) data.get("name"),
                 (String) data.get("imageUrl"),
                 toInt(data.get("pointsPrice")),
                 toInt(data.get("stock")),
-                (String) data.get("status")
+                statusStr
         );
     }
 

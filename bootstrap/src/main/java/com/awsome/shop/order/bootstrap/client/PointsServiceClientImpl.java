@@ -35,10 +35,9 @@ public class PointsServiceClientImpl implements PointsServiceClient {
     @Override
     @SuppressWarnings("unchecked")
     public Integer getBalance(Long userId) {
-        String url = pointsServiceUrl + "/api/v1/internal/point/balance";
-        Map<String, Object> body = Map.of("userId", userId);
+        String url = pointsServiceUrl + "/api/v1/internal/point/balance/" + userId;
 
-        Map<String, Object> responseBody = postWithRetry(url, body, "查询余额");
+        Map<String, Object> responseBody = getWithRetry(url, "查询余额");
         if (responseBody == null || !"SUCCESS".equals(responseBody.get("code"))) {
             log.warn("[PointsClient] 查询余额失败, userId={}, response={}", userId, responseBody);
             return null;
@@ -68,7 +67,8 @@ public class PointsServiceClientImpl implements PointsServiceClient {
         Object data = responseBody.get("data");
         if (data == null) return null;
         if (data instanceof Map) {
-            Object transactionId = ((Map<String, Object>) data).get("transactionId");
+            // Points service returns "id" as the transaction ID field
+            Object transactionId = ((Map<String, Object>) data).get("id");
             return transactionId != null ? ((Number) transactionId).longValue() : null;
         }
         return ((Number) data).longValue();
@@ -111,6 +111,30 @@ public class PointsServiceClientImpl implements PointsServiceClient {
             log.error("[PointsClient] {} 异常, url={}", operation, url, e);
             return null;
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> getWithRetry(String url, String operation) {
+        try {
+            return doGet(url);
+        } catch (ResourceAccessException e) {
+            log.warn("[PointsClient] {} 超时/网络异常，立即重试, url={}", operation, url, e);
+            try {
+                return doGet(url);
+            } catch (Exception retryEx) {
+                log.error("[PointsClient] {} 重试仍失败, url={}", operation, url, retryEx);
+                return null;
+            }
+        } catch (Exception e) {
+            log.error("[PointsClient] {} 异常, url={}", operation, url, e);
+            return null;
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> doGet(String url) {
+        ResponseEntity<Map> response = restTemplate.getForEntity(url, Map.class);
+        return response.getBody();
     }
 
     @SuppressWarnings("unchecked")
