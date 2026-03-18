@@ -34,9 +34,9 @@ spring:
 # Cross-service call config (Copilot Service Connect DNS)
 service:
   product:
-    url: http://product:8002
+    url: http://product.dev.awsome-shop.local:8002
   points:
-    url: http://points:8003
+    url: http://points.dev.awsome-shop.local:8003
   connect-timeout: 1000
   read-timeout: 2000
 
