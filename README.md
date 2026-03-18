@@ -171,7 +171,7 @@ mvn clean install -DskipTests
 mvn spring-boot:run -pl bootstrap
 
 # 5. 访问 Swagger
-open http://localhost:8081/swagger-ui.html
+open http://localhost:8004/swagger-ui.html
 ```
 
 ---

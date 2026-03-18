@@ -23,9 +23,9 @@ spring:
       
   # 数据源配置
   datasource:
-    url: jdbc:mysql://localhost:3307/awsome_shop_order?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC&useSSL=false&allowPublicKeyRetrieval=true
+    url: jdbc:mysql://localhost:3306/awsome_shop_order?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC&useSSL=false&allowPublicKeyRetrieval=true
     username: root
-    password: root
+    password: your_password
     driver-class-name: com.mysql.cj.jdbc.Driver
     type: com.alibaba.druid.pool.DruidDataSource
 
@@ -87,6 +87,15 @@ security:
     max-failed-attempts: 5
     # 账号锁定时长 (单位: 秒，30分钟 = 1800秒)
     lock-duration: 1800
+
+# 跨服务调用配置
+service:
+  product:
+    url: http://localhost:8002
+  points:
+    url: http://localhost:8003
+  connect-timeout: 1000
+  read-timeout: 2000
 
 # Shop 配置
 shop:

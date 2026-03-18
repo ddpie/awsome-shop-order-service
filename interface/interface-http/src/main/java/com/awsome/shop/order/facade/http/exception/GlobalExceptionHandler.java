@@ -185,11 +185,30 @@ public class GlobalExceptionHandler {
     /**
      * 兜底：处理未预期的异常
      *
+     * <p>同时处理 MissingRequestHeaderException 和 NoResourceFoundException，
+     * 因为 interface-http 模块未直接依赖 jakarta.servlet-api，无法声明为独立处理器参数类型。</p>
+     *
      * @param e 未知异常
-     * @return 500 错误响应
+     * @return 错误响应
      */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Result<Void>> handleException(Exception e) {
+        String exName = e.getClass().getSimpleName();
+
+        // 缺少请求头（如 X-Operator-Id）
+        if ("MissingRequestHeaderException".equals(exName)) {
+            log.warn("[全局异常处理] 缺少请求头: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Result.error(400003, e.getMessage()));
+        }
+
+        // 请求路径不存在
+        if ("NoResourceFoundException".equals(exName)) {
+            log.warn("[全局异常处理] 资源不存在: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Result.error(404000, "请求的资源不存在"));
+        }
+
         log.error("[全局异常处理] 未知异常", e);
 
         // 不暴露内部实现细节
@@ -220,8 +239,8 @@ public class GlobalExceptionHandler {
             return HttpStatus.OK;
         }
 
-        // 提取错误码前缀
-        String prefix = errorCode.contains("_") ? errorCode.substring(0, errorCode.indexOf("_")) : errorCode;
+        // 提取错误码前缀（最后一个 _ 之前的部分，如 NOT_FOUND_001 → NOT_FOUND）
+        String prefix = extractPrefix(errorCode);
 
         return switch (prefix) {
             case "AUTH" -> HttpStatus.UNAUTHORIZED;          // 401
@@ -256,18 +275,13 @@ public class GlobalExceptionHandler {
         }
 
         try {
-            // 分割错误码，例如 "AUTH_001" -> ["AUTH", "001"]
-            String[] parts = errorCode.split("_");
-            if (parts.length != 2) {
-                log.warn("[全局异常处理] 错误码格式不正确: {}", errorCode);
-                return 500000;
-            }
-
-            String category = parts[0];
-            int sequence = Integer.parseInt(parts[1]);
+            // 提取前缀和序号，例如 "NOT_FOUND_001" -> prefix="NOT_FOUND", sequence=1
+            String prefix = extractPrefix(errorCode);
+            String sequenceStr = errorCode.substring(errorCode.lastIndexOf("_") + 1);
+            int sequence = Integer.parseInt(sequenceStr);
 
             // 根据类别前缀映射到HTTP状态码
-            int httpStatusPrefix = switch (category) {
+            int httpStatusPrefix = switch (prefix) {
                 case "AUTH" -> 401;
                 case "AUTHZ" -> 403;
                 case "PARAM" -> 400;
@@ -277,7 +291,7 @@ public class GlobalExceptionHandler {
                 case "BIZ" -> 200;
                 case "SYS" -> 500;
                 default -> {
-                    log.warn("[全局异常处理] 未知的错误码类别: {}", category);
+                    log.warn("[全局异常处理] 未知的错误码类别: {}", prefix);
                     yield 500;
                 }
             };
@@ -287,5 +301,18 @@ public class GlobalExceptionHandler {
             log.error("[全局异常处理] 解析错误码失败: errorCode={}", errorCode, e);
             return 500000;
         }
+    }
+
+    /**
+     * 提取错误码前缀（最后一个 _ 之前的部分）
+     *
+     * <p>例如：NOT_FOUND_001 → NOT_FOUND，AUTH_001 → AUTH，BIZ_005 → BIZ</p>
+     */
+    private String extractPrefix(String errorCode) {
+        int lastUnderscore = errorCode.lastIndexOf("_");
+        if (lastUnderscore <= 0) {
+            return errorCode;
+        }
+        return errorCode.substring(0, lastUnderscore);
     }
 }

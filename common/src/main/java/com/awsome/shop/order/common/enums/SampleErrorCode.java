@@ -16,17 +16,17 @@ public enum SampleErrorCode implements ErrorCode {
     /**
      * 资源不存在
      */
-    RESOURCE_NOT_FOUND("NOT_FOUND_001", "资源不存在"),
+    RESOURCE_NOT_FOUND("NOT_FOUND_999", "资源不存在"),
 
     /**
      * 资源已存在（支持参数化消息）
      */
-    RESOURCE_ALREADY_EXISTS("CONFLICT_001", "资源已存在: {0}"),
+    RESOURCE_ALREADY_EXISTS("CONFLICT_999", "资源已存在: {0}"),
 
     /**
      * 操作不允许
      */
-    OPERATION_NOT_ALLOWED("AUTHZ_001", "当前用户无权执行此操作");
+    OPERATION_NOT_ALLOWED("AUTHZ_999", "当前用户无权执行此操作");
 
     private final String code;
     private final String message;

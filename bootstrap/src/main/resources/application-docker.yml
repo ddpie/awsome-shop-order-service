@@ -2,7 +2,7 @@
 # 容器化部署环境配置
 
 server:
-  port: 8081
+  port: ${SERVER_PORT:8004}
 
 spring:
   # Redis 配置
@@ -15,7 +15,7 @@ spring:
   # 数据源配置
   datasource:
     url: jdbc:mysql://${DB_HOST:mysql}:${DB_PORT:3306}/${DB_NAME:awsome_shop_order}?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC&useSSL=false&allowPublicKeyRetrieval=true
-    username: ${DB_USERNAME:root}
+    username: ${DB_USER:root}
     password: ${DB_PASSWORD:root}
     driver-class-name: com.mysql.cj.jdbc.Driver
     type: com.alibaba.druid.pool.DruidDataSource
@@ -45,6 +45,15 @@ mybatis-plus:
     db-config:
       banner: false
 
+# 跨服务调用配置
+service:
+  product:
+    url: ${PRODUCT_SERVICE_URL:http://product-service:8002}
+  points:
+    url: ${POINTS_SERVICE_URL:http://points-service:8003}
+  connect-timeout: ${CONNECT_TIMEOUT:1000}
+  read-timeout: ${READ_TIMEOUT:2000}
+
 # Security 配置
 security:
   jwt:
@@ -59,7 +68,7 @@ security:
 shop:
   security:
     encryption:
-      key: ${ENCRYPTION_KEY:dockerEncryptionKey1234567890ab}
+      key: ${ENCRYPTION_KEY}
 
 # 日志配置
 logging:

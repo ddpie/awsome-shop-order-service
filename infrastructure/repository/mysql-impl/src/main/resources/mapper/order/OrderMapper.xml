@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.awsome.shop.order.repository.mysql.mapper.order.OrderMapper">
+
+    <!-- 按用户ID分页查询订单 -->
+    <select id="selectPageByUserId" resultType="com.awsome.shop.order.repository.mysql.po.order.OrderPO">
+        SELECT id, user_id, product_id, product_name, product_image_url,
+               points_cost, status, points_transaction_id,
+               created_at, updated_at, created_by, updated_by, deleted, version
+        FROM orders
+        WHERE deleted = 0
+          AND user_id = #{userId}
+        ORDER BY created_at DESC
+    </select>
+
+    <!-- 管理员分页查询所有订单 -->
+    <select id="selectPageAll" resultType="com.awsome.shop.order.repository.mysql.po.order.OrderPO">
+        SELECT id, user_id, product_id, product_name, product_image_url,
+               points_cost, status, points_transaction_id,
+               created_at, updated_at, created_by, updated_by, deleted, version
+        FROM orders
+        WHERE deleted = 0
+        <if test="keyword != null and keyword != ''">
+            AND product_name LIKE CONCAT('%', #{keyword}, '%')
+        </if>
+        <if test="startDate != null">
+            AND created_at &gt;= #{startDate}
+        </if>
+        <if test="endDate != null">
+            AND created_at &lt;= #{endDate}
+        </if>
+        ORDER BY created_at DESC
+    </select>
+
+</mapper>

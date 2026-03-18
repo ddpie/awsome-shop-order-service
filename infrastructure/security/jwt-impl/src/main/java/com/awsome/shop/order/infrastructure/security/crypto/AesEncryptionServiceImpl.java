@@ -1,6 +1,8 @@
 package com.awsome.shop.order.infrastructure.security.crypto;
 
 import com.awsome.shop.order.infrastructure.security.api.service.EncryptionService;
+import com.awsome.shop.order.common.exception.SystemException;
+import com.awsome.shop.order.common.enums.SystemErrorCode;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -52,7 +54,7 @@ public class AesEncryptionServiceImpl implements EncryptionService {
      * @param encryptionKey AES-256加密密钥（32字节，Base64编码或原始字符串）
      */
     public AesEncryptionServiceImpl(
-            @Value("${shop.security.encryption.key:defaultEncryptionKey12345678901234}") String encryptionKey) {
+            @Value("${shop.security.encryption.key}") String encryptionKey) {
         this.secretKey = createSecretKey(encryptionKey);
         this.secureRandom = new SecureRandom();
     }
@@ -88,7 +90,7 @@ public class AesEncryptionServiceImpl implements EncryptionService {
             return ENCRYPTION_PREFIX + Base64.getEncoder().encodeToString(combined);
 
         } catch (Exception e) {
-            throw new RuntimeException("加密失败: " + e.getMessage(), e);
+            throw new SystemException(SystemErrorCode.UNKNOWN_ERROR, "加密失败: " + e.getMessage(), e);
         }
     }
 
@@ -136,7 +138,7 @@ public class AesEncryptionServiceImpl implements EncryptionService {
         } catch (IllegalArgumentException e) {
             throw e;
         } catch (Exception e) {
-            throw new RuntimeException("解密失败: " + e.getMessage(), e);
+            throw new SystemException(SystemErrorCode.UNKNOWN_ERROR, "解密失败: " + e.getMessage(), e);
         }
     }
 
